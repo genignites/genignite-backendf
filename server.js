@@ -1,87 +1,324 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const multer = require('multer');
-const nodemailer = require('nodemailer');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GenIgnite Technologies — Premium v4</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=switzer@300,400,500,600,700,800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#050507; --fg:#fff; --muted:#aeb4c2; --border:#1b1e25; --card:#0c0e13; --card2:#0f1218;
+      --accent:#7b61ff; --accent2:#ff4f7b; --radius:18px; --shadow:0 10px 40px rgba(0,0,0,.35);
+      --max:1280px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:Switzer,system-ui,Segoe UI,Roboto,Arial,sans-serif;scroll-behavior:smooth}
+    a{color:#fff;text-decoration:none}
+    .container{max-width:var(--max);margin:0 auto;padding:0 28px}
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+    /* HEADER */
+    .header{position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);background:rgba(8,9,12,.55);border-bottom:1px solid rgba(255,255,255,.06)}
+    .navwrap{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+    .logo{width:34px;height:34px;border-radius:9px;overflow:hidden;flex:0 0 34px}
+    .logo img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+    .brand span.title{font-size:18px;line-height:1.1}
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-app.use(express.static(path.join(__dirname, 'public')));
+    .nav{display:flex;align-items:center;gap:8px}
+    .nav a{opacity:.95;padding:10px 12px;border-radius:12px;transition:.25s;font-weight:600}
+    .nav a:hover,.nav a.active{background:rgba(255,255,255,.08)}
+    .cta{background:linear-gradient(90deg,var(--accent),var(--accent2));padding:10px 16px;border-radius:12px;font-weight:800;box-shadow:var(--shadow)}
 
-// Multer setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, 'uploads');
-    if(!fs.existsSync(dir)) fs.mkdirSync(dir, {recursive:true});
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g,'_');
-    cb(null, Date.now() + '-' + Math.round(Math.random()*1e9) + '-' + safe);
-  }
-});
-const upload = multer({ storage });
+    /* HAMBURGER (shown on mobile) */
+    .hamb{display:none;gap:8px;align-items:center}
+    .hamb button{all:unset;cursor:pointer;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.08)}
+    .hamb svg{width:22px;height:22px}
 
-// Nodemailer (Gmail App Password recommended)
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+    /* OFF-CANVAS MOBILE MENU (Cognida style) */
+    .backdrop{position:fixed;inset:0;background:rgba(4,6,10,.5);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:.3s}
+    .mobileMenu{position:fixed;top:0;right:-320px;width:82vw;max-width:320px;height:100dvh;background:#0b0e14;border-left:1px solid var(--border);
+      box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:10px;transition:transform .35s ease;transform:translateX(0)}
+    .mobileMenu a{padding:12px 14px;border-radius:12px;background:#0f1218;border:1px solid var(--border)}
+    .mobileMenu .apply{background:linear-gradient(90deg,var(--accent),var(--accent2));text-align:center;font-weight:800;border:none}
+    .mm-open .backdrop{opacity:1;pointer-events:auto}
+    .mm-open .mobileMenu{right:0}
 
-app.post('/apply', upload.single('resume'), async (req, res) => {
-  try {
-    const { name='', email='', phone='', domain='', message='' } = req.body;
-    const file = req.file;
+    /* HERO */
+    .hero{position:relative;min-height:88vh;display:grid;place-items:center;overflow:hidden}
+    .hero .img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1535223289827-42f1e9919769?q=80&w=1800&auto=format&fit=crop') center/cover;filter:brightness(.35)}
+    .halo{position:absolute;inset:-15%;background:
+      radial-gradient(60% 60% at 70% 20%, rgba(123,97,255,.20),transparent 60%),
+      radial-gradient(60% 60% at 20% 80%, rgba(255,79,123,.20),transparent 60%);filter:blur(40px);animation:float 16s ease-in-out infinite}
+    @keyframes float{50%{transform:translateY(-18px)}}
+    .shape{position:absolute;opacity:.35;filter:blur(18px);border-radius:50%;animation:float2 12s ease-in-out infinite}
+    .shape.one{width:220px;height:220px;top:10%;left:5%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .shape.two{width:160px;height:160px;bottom:15%;right:8%;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+    @keyframes float2{0%{transform:translateY(0)}50%{transform:translateY(-30px)}100%{transform:translateY(0)}}
+    .heroin{position:relative;text-align:center;padding:0 20px}
+    .title{font-size:clamp(28px,7vw,72px);line-height:1.07;margin:0 0 14px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .subtitle{color:var(--muted);max-width:900px;margin:0 auto 24px}
+    .pills{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .pill{background:#10131b;border:1px solid var(--border);padding:8px 12px;border-radius:999px;font-size:13px;color:#cfd6e3}
 
-    const html = `
-      <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px">
-        <h2>New Internship Application</h2>
-        <p><b>Name:</b> ${name}</p>
-        <p><b>Email:</b> ${email}</p>
-        <p><b>Phone:</b> ${phone}</p>
-        <p><b>Domain:</b> ${domain}</p>
-        <p><b>Message:</b><br/>${(message||'').replace(/</g,'&lt;')}</p>
+    /* SECTIONS */
+    .section{padding:90px 0}
+    .kicker{color:#9aa0ad;text-transform:uppercase;letter-spacing:.14em;font-size:12px;margin-bottom:10px}
+    .h2{font-size:clamp(24px,4.2vw,42px);margin:0 0 12px}
+    .lead{color:#cbd2dd;margin:0 0 24px}
+    .grid{display:grid;gap:24px}
+    .grid-3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .grid-2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+    .card{background:var(--card);border:1px solid var(--border);padding:26px;border-radius:16px;transition:.25s}
+    .card:hover{transform:translateY(-6px);border-color:#2a2e37}
+
+    /* FORM */
+    .formwrap{background:var(--card2);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:28px}
+    form.grid-2row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    form.grid-2row .full{grid-column:1/-1}
+    input,select,textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #222836;background:#0f131a;color:#fff}
+    textarea{min-height:140px}
+    .btn{display:inline-block;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:12px 18px;border-radius:12px;font-weight:800;border:none;cursor:pointer}
+    .note{color:#9aa0ad;font-size:13px}
+
+    /* CASES */
+    .case{background:linear-gradient(180deg,#0b0e14,#090b10);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:26px}
+    .badge{display:inline-block;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-size:12px;margin:0 6px 8px 0}
+    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
+    .metric{background:#0e1219;border:1px solid var(--border);padding:14px;border-radius:12px;color:#cfd6e3}
+
+    .footer{border-top:1px solid var(--border);padding:40px 0;color:#a8afbb;text-align:center;margin-top:60px}
+
+    .reveal{opacity:0;transform:translateY(18px);transition:.7s ease}
+    .reveal.visible{opacity:1;transform:translateY(0)}
+
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 992px){
+      .nav{display:none}          /* hide desktop nav */
+      .hamb{display:flex}         /* show burger */
+      .brand span.title{font-size:16px}
+      .title{letter-spacing:-.3px}
+      form.grid-2row{grid-template-columns:1fr} /* form single column */
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="container navwrap">
+      <div class="brand">
+        <span class="logo"><img src="assets/logo.jpg" alt="GenIgnite Logo"/></span>
+        <span class="title">GenIgnite Technologies</span>
       </div>
-    `;
 
-    const mail = await transporter.sendMail({
-      from: `"GenIgnite Applications" <${process.env.EMAIL_USER}>`,
-      to: process.env.RECIPIENT || process.env.EMAIL_USER,
-      subject: `New Internship Application — ${name} (${domain})`,
-      html,
-      attachments: file ? [{
-        filename: file.originalname,
-        path: file.path
-      }] : []
+      <!-- Desktop nav -->
+      <nav class="nav">
+        <a href="#home" class="active">Home</a>
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#projects">Projects</a>
+        <a href="#internships">Internships</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <!-- CTA + Hamburger -->
+      <div class="hamb">
+        <a class="cta" href="#internships">Apply</a>
+        <button id="hambBtn" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- BACKDROP + OFF-CANVAS MENU -->
+  <div class="backdrop" id="backdrop" hidden></div>
+  <aside class="mobileMenu" id="mobileMenu" aria-hidden="true">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="logo" style="width:28px;height:28px"><img src="assets/logo.jpg" alt=""/></span>
+        <strong>Menu</strong>
+      </div>
+      <button id="closeBtn" aria-label="Close menu" style="all:unset;cursor:pointer;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.08)">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M6 6l12 12M18 6l-12 12" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <a href="#home">Home</a>
+    <a href="#about">About</a>
+    <a href="#services">Services</a>
+    <a href="#projects">Projects</a>
+    <a href="#internships">Internships</a>
+    <a href="#contact">Contact</a>
+    <a class="apply" href="#internships">Apply</a>
+  </aside>
+
+  <!-- HERO -->
+  <section id="home" class="hero">
+    <div class="img"></div>
+    <div class="halo"></div>
+    <div class="shape one"></div>
+    <div class="shape two"></div>
+    <div class="container heroin">
+      <h1 class="title">Ignite your career with industry-ready training and real-time projects.</h1>
+      <p class="subtitle">ISO & MSME verified • Internships • Corporate Workshops • Real-Time Projects • AI/ML • Full-Stack • Cloud & DevOps</p>
+      <div class="pills">
+        <span class="pill">AI & ML</span><span class="pill">Java Full Stack</span><span class="pill">Python Full Stack</span>
+        <span class="pill">Web Designing</span><span class="pill">Cloud & DevOps</span><span class="pill">Real-Time Projects</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="section">
+    <div class="container reveal">
+      <div class="kicker">About</div>
+      <h2 class="h2">We turn learners into job-ready professionals</h2>
+      <p class="lead">GenIgnite Technologies is an ISO & MSME verified organisation offering internships, corporate workshops and production-style learning tracks. Our programs focus on hands-on execution, code reviews, and real deployments.</p>
+      <div class="grid grid-3">
+        <div class="card"><h3>Mission</h3><p>Deliver rigorous, industry-aligned training that accelerates careers.</p></div>
+        <div class="card"><h3>Vision</h3><p>Be the most trusted innovation-driven tech education partner in India.</p></div>
+        <div class="card"><h3>Values</h3><p>Quality • Integrity • Impact • Innovation.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services" class="section">
+    <div class="container reveal">
+      <div class="kicker">Services</div>
+      <h2 class="h2">Training & Corporate Programs</h2>
+      <p class="lead">Comprehensive, modular learning paths designed for colleges and enterprise teams.</p>
+      <div class="grid grid-3">
+        <div class="card"><h3>AI & Machine Learning</h3><p>Neural networks, MLOps, model deployment with real datasets.</p></div>
+        <div class="card"><h3>Full-Stack Development</h3><p>Django/Flask & Spring Boot, REST APIs, auth, testing, CI/CD.</p></div>
+        <div class="card"><h3>Corporate Workshops</h3><p>Data Engineering • DevOps • Cloud • Cybersecurity.</p></div>
+        <div class="card"><h3>UI/UX Design</h3><p>Wireframes, responsive components, accessibility & usability.</p></div>
+        <div class="card"><h3>Consulting</h3><p>Architecture reviews, roadmaps, and team mentoring.</p></div>
+        <div class="card"><h3>Real-Time Projects</h3><p>Team sprints, code reviews, documentation and deployment.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" class="section">
+    <div class="container reveal">
+      <div class="kicker">Projects</div>
+      <h2 class="h2">Enterprise Case Studies</h2>
+      <p class="lead">Three flagship initiatives demonstrating measurable business impact.</p>
+
+      <article class="case" style="margin-bottom:22px">
+        <div class="badge">Finance Automation</div>
+        <h3>Simplifying Month-End Financial Reporting</h3>
+        <p><strong>Problem:</strong> Manual consolidation across ERPs, spreadsheets, and emails led to delays and reconciliation errors.</p>
+        <p><strong>Approach:</strong> Automated ingestion (ETL), validation rules, and a governed model. Power BI dashboards with variance analysis and approvals.</p>
+        <p><strong>Tech Stack:</strong> Python, Airflow, dbt, PostgreSQL, Power BI, S3.</p>
+        <div class="metrics">
+          <div class="metric"><strong>80%</strong><br/>Cycle time reduction</div>
+          <div class="metric"><strong>99.5%</strong><br/>Data accuracy</div>
+          <div class="metric"><strong>One-click</strong><br/>Board-ready pack</div>
+        </div>
+      </article>
+
+      <article class="case" style="margin-bottom:22px">
+        <div class="badge">Logistics Optimisation</div>
+        <h3>Improving Last Mile Delivery Performance</h3>
+        <p><strong>Problem:</strong> High failed attempts, suboptimal routing, and poor slot adherence increased costs and lowered NPS.</p>
+        <p><strong>Approach:</strong> Demand heatmaps, dynamic clustering, route optimisation with traffic & service-time constraints, and real-time exception re-assignment. Courier scorecards + SLA alerts.</p>
+        <p><strong>Tech Stack:</strong> Python, OR-Tools, GeoPandas, Kafka, Redis, React.</p>
+        <div class="metrics">
+          <div class="metric"><strong>12%</strong><br/>Cost per drop ↓</div>
+          <div class="metric"><strong>+9 pts</strong><br/>On-time delivery</div>
+          <div class="metric"><strong>-18%</strong><br/>Failed attempts</div>
+        </div>
+      </article>
+
+      <article class="case">
+        <div class="badge">Workforce AI</div>
+        <h3>Intelligent Workforce Scheduling Optimisation</h3>
+        <p><strong>Problem:</strong> Manual shift planning ignored skills, peaks, and compliance, causing overtime and backlog.</p>
+        <p><strong>Approach:</strong> Constraint-based solver allocating shifts by skill, forecast, and labour rules. What-if planning & manager app.</p>
+        <p><strong>Tech Stack:</strong> Python, OptaPlanner/OR-Tools, Prophet, PostgreSQL, Flutter.</p>
+        <div class="metrics">
+          <div class="metric"><strong>25%</strong><br/>Overtime reduction</div>
+          <div class="metric"><strong>15%</strong><br/>Throughput increase</div>
+          <div class="metric"><strong>100%</strong><br/>Compliance adherence</div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- INTERNSHIPS -->
+  <section id="internships" class="section">
+    <div class="container reveal">
+      <div class="kicker">Apply</div>
+      <h2 class="h2">Internship Application</h2>
+      <p class="lead">Choose your domain and upload your resume. Our team will reach out with the next steps.</p>
+      <div class="formwrap">
+        <form class="grid-2row" method="post" enctype="multipart/form-data" action="https://genignite-backendf.onrender.com/apply">
+          <input name="name" placeholder="Full Name" required/>
+          <input type="email" name="email" placeholder="Email" required/>
+          <input name="phone" placeholder="Phone" required/>
+          <select name="domain" required>
+            <option value="">Select Domain</option>
+            <option>AI & ML</option>
+            <option>Python Full Stack</option>
+            <option>Java Full Stack</option>
+            <option>Web Designing</option>
+            <option>Cloud & DevOps</option>
+          </select>
+          <textarea class="full" name="message" placeholder="Tell us about your background..."></textarea>
+          <div class="full">
+            <label class="note">Upload Resume (PDF/DOC)</label>
+            <input type="file" name="resume" required/>
+          </div>
+          <div class="full"><button class="btn" type="submit">Submit Application</button></div>
+          <div class="full note">Your application will be emailed to us immediately.</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="section">
+    <div class="container reveal">
+      <div class="kicker">Contact</div>
+      <h2 class="h2">Reach Us</h2>
+      <div class="grid grid-3">
+        <div class="card"><h3>Contact Details</h3><p><strong>Email:</strong> genignites@gmail.com<br/><strong>Phone:</strong> 8639664400 / 9391789166</p></div>
+        <div class="card"><h3>Certifications</h3><p>ISO & MSME verified organisation offering career-aligned training and internships.</p></div>
+        <div class="card"><h3>Availability</h3><p>Online + On-site corporate training across India.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">© 2025 GenIgnite Technologies — ISO & MSME Verified</div>
+  </footer>
+
+  <script>
+    // Reveal on scroll
+    const io=new IntersectionObserver((es)=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}}),{threshold:.12});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+    // Active nav highlight
+    const links=[...document.querySelectorAll('.nav a')];
+    const ids=links.map(a=>a.getAttribute('href'));
+    window.addEventListener('scroll',()=>{const y=window.scrollY+120; let cur=ids[0];
+      ids.forEach(sel=>{const t=document.querySelector(sel); if(t && t.offsetTop<=y) cur=sel});
+      links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===cur));
     });
 
-    // Optional: Log CSV
-    const line = [new Date().toISOString(), name, email, phone, domain, message, file?file.filename:'']
-      .map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',') + '\n';
-    const dir = path.join(__dirname, 'submissions');
-    if(!fs.existsSync(dir)) fs.mkdirSync(dir, {recursive:true});
-    const csv = path.join(dir, 'applications.csv');
-    if(!fs.existsSync(csv)) fs.writeFileSync(csv, 'timestamp,name,email,phone,domain,message,resume\n');
-    fs.appendFileSync(csv, line);
-
-    res.json({ success:true });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success:false, error: 'Failed to send email' });
-  }
-});
-
-app.get('*', (req,res)=> res.sendFile(path.join(__dirname, 'public', 'index.html')));
-
-app.listen(PORT, ()=> console.log(`GenIgnite Email Backend running at http://localhost:${PORT}`));
+    // Mobile menu logic
+    const body=document.body, hamb=document.getElementById('hambBtn'), closeBtn=document.getElementById('closeBtn');
+    const backdrop=document.getElementById('backdrop'), panel=document.getElementById('mobileMenu');
+    function openMM(){ body.classList.add('mm-open'); backdrop.hidden=false; hamb.setAttribute('aria-expanded','true'); panel.setAttribute('aria-hidden','false'); }
+    function closeMM(){ body.classList.remove('mm-open'); setTimeout(()=>backdrop.hidden=true,300); hamb.setAttribute('aria-expanded','false'); panel.setAttribute('aria-hidden','true'); }
+    hamb.addEventListener('click',openMM);
+    closeBtn.addEventListener('click',closeMM);
+    backdrop.addEventListener('click',closeMM);
+    // Close on link click
+    panel.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMM));
+    // Esc key
+    window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeMM(); });
+  </script>
+</body>
+</html>
