@@ -3,13 +3,12 @@ const express = require("express");
 const multer = require("multer");
 const { Resend } = require("resend");
 const fs = require("fs");
-const path = require("path");
 
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-// ✅ Initialize Resend with API key
+// ✅ Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ✅ Resume upload folder
@@ -17,12 +16,11 @@ const upload = multer({ dest: "uploads/" });
 
 /* =====================================================
    ✅ TEST EMAIL ENDPOINT
-   Use to check if Resend is working
 ====================================================== */
 app.get("/test-email", async (req, res) => {
   try {
     const resp = await resend.emails.send({
-      from: "GenIgnite Technologies <onboarding@resend.dev>",
+      from: "GenIgnite Technologies <noreply@genignitetechnologies.in>",
       to: process.env.RECIPIENT,
       subject: "GenIgnite Backend Test Email ✅",
       html: "<h2>Your backend email service is working!</h2>",
@@ -43,15 +41,14 @@ app.post("/apply", upload.single("resume"), async (req, res) => {
     const { name, email, phone, domain, message } = req.body;
 
     if (!req.file) {
-      return res.json({ success: false, error: "Resume file missing" });
+      return res.json({ success: false, error: "Resume missing" });
     }
 
     const filePath = req.file.path;
     const fileContent = fs.readFileSync(filePath);
 
-    // ✅ Send email using Resend
     const emailResponse = await resend.emails.send({
-      from: "GenIgnite Technologies <onboarding@resend.dev>",
+      from: "GenIgnite Technologies <noreply@genignitetechnologies.in>",
       to: process.env.RECIPIENT,
       subject: `New Internship Application - ${name}`,
       html: `
@@ -70,7 +67,6 @@ app.post("/apply", upload.single("resume"), async (req, res) => {
       ],
     });
 
-    // ✅ Delete file after sending
     fs.unlinkSync(filePath);
 
     res.json({ success: true, message: "Application sent successfully!" });
